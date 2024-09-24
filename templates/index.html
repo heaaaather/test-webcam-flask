@@ -1,32 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <title>Flask Client Camera Web App</title>
-
+    <meta charset="utf-8">
+    <title>Display Webcam Stream</title>
+  
     <style>
-     #video {
-      transform: rotateY(180deg);
-      -webkit-transform:rotateY(180deg); /* Safari and Chrome */
-      -moz-transform:rotateY(180deg); /* Firefox */
+      #container {
+        margin: 0px auto;
+        width: 500px;
+        height: 375px;
+        border: 10px #333 solid;
+      }
 
-     }
+      #videoElement {
+        width: 500px;
+        height: 375px;
+        background-color: #666;
+      }
     </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   </head>
-
+ 
   <body>
-
     <div id="container">
-      <video autoplay playsinline id="videoElement"></video>
-      <canvas id="canvas" width="400" height="300"></canvas>
+      <video autoplay="true" id="videoElement"></video>
     </div>
 
-    <div class= 'video'>
-      <img id="photo" width="400" height="300">
-    </div>
-    <script src="{{ url_for('static',filename='script.js') }}"></script>
+    <script>
+      var video = document.querySelector("#videoElement");
+
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function (stream) {
+            video.srcObject = stream;
+          })
+          .catch(function (err0r) {
+            console.log("Something went wrong!");
+          });
+      }
+    </script>
   </body>
-
 </html>
