@@ -9,7 +9,7 @@ from ultralytics import YOLO
 app = Flask(__name__)
 
 # Load the YOLO model
-model = YOLO('/models/CustomLPR.pt')
+model = YOLO('models/CustomLPR.pt')
 
 # Initialize EasyOCR reader
 reader = easyocr.Reader(['en'])
