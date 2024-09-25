@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/images/favicon-32x32.png">
+    <title>WebRTC Testing</title>
+
+    <style>
+        #videoContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        video {
+            width: 80%;
+            height: auto;
+            border: 2px solid #000;
+        }
+
+        #plateDisplay {
+            margin-top: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        #configContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="videoContainer">
+        <video id="liveFeed" autoplay playsinline></video>
+        <div id="plateDisplay">Detected Plate: <span id="plateNumber"></span></div>
+    </div>
+
+    <div id="configContainer">
+        <h3>Camera Configuration</h3>
+        <label for="cameraSelect">Select Camera:</label>
+        <select id="cameraSelect"></select>
+        
+        <button id="saveConfig">Save Configuration</button>
+    </div>
+
+    <script>
+        // Function to start the camera feed
+        async function startCamera(cameraId) {
+            const video = document.getElementById('liveFeed');
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: cameraId } });
+            video.srcObject = stream;
+
+            // Start the automatic plate detection process
+            setInterval(captureFrame, 5000);
+        }
+
+        // Function to capture a frame from the video feed
+        function captureFrame() {
+            const video = document.getElementById('liveFeed');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to image data and send to the server
+            const frameData = canvas.toDataURL('image/jpeg');
+            sendFrameToServer(frameData);
+        }
+
+        // Function to send the captured frame to the backend for ALPR processing
+        function sendFrameToServer(frameData) {
+            fetch('/webrtc/process-frame', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ frame: frameData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('plateNumber').textContent = data.plate || "No plate detected";
+            });
+        }
+
+        // Function to populate the camera selection dropdown
+        async function populateCameraList() {
+            const cameraSelect = document.getElementById('cameraSelect');
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            devices.forEach(device => {
+                if (device.kind === 'videoinput') {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `Camera ${cameraSelect.length + 1}`;
+                    cameraSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Function to save camera configuration
+        function saveCameraConfig() {
+            const cameraId = document.getElementById('cameraSelect').value;
+
+            const settings = {
+                source: cameraId  // Use cameraId instead of index
+            };
+
+            fetch('/webrtc/configure-camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                startCamera(cameraId); // Start camera feed after saving settings
+            });
+        }
+
+        // Event listener for the save configuration button
+        document.getElementById('saveConfig').addEventListener('click', saveCameraConfig);
+
+        // Populate camera list and start the camera on page load
+        window.onload = async () => {
+            await populateCameraList();
+            const cameraId = document.getElementById('cameraSelect').value; // Default to the first camera
+            startCamera(cameraId);
+        };
+    </script>
+</body>
+</html>
