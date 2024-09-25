@@ -61,7 +61,7 @@
 
             // send the captured frame to the backend for ALPR processing
             function sendFrameToServer(frameData) {
-                fetch('/webrtc/process-frame', {
+                fetch('/process-frame', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
