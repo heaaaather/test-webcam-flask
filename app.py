@@ -20,7 +20,7 @@ def decode_image_from_base64(image_base64):
     image = Image.open(BytesIO(image_data))
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR) # convert pil image to opencv format
 
-model = YOLO('../models/CustomLPR.pt')
+model = YOLO('./models/CustomLPR.pt')
 reader = easyocr.Reader(['en'])
 
 # initialize image count
