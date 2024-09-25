@@ -128,12 +128,12 @@ def save_plate_to_firebase(plate_number, camera_id):
     }
     ref.push(plate_data)
 
+# Load the test-webrtc HTML
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 if __name__ == '__main__':
     # Run the Flask app
     app.run(host='0.0.0.0', port=5000, debug=True)
 
-
-# Load the test-webrtc HTML
-@app.route('/webrtc-testing')
-def webrtc_testing():
-    return render_template('test-webrtc.html')
